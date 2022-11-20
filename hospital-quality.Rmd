@@ -1,0 +1,139 @@
+---
+title: "Quality of US Hospitals by 30-day Death Rates"
+output: html_notebook
+---
+
+This notebook explores how to read real world data and execute filtering on it.
+The data is a snapshot of the "Hospital Compare" database. The activities
+in the notebook are generally guided by the Week 4 assignment "Assignment 3" of
+the "Introduction to R Programming" course on Coursera. Use the included
+`Hosptial_Revised_Flatfiles.pdf` to understand the CSV table
+`outcome-of-care-measures.csv`, which is **entry 19** on page 17.
+
+
+```{r}
+if (!require(testthat)) install.packages('testthat')
+library(testthat)
+
+setwd("~/R/IntroR/Week4/Assignment3")
+
+source("best.R")
+source("rankhospital.R")
+source("rankall.R")
+```
+
+# Part 1: Plot the 30-day mortality rates for heart attack
+
+```{r}
+outcome <- read.csv("outcome-of-care-measures.csv", colClasses = "character")
+head(outcome)
+```
+
+```{r}
+colnames(outcome)
+```
+
+
+```{r}
+as_numeric_cols <- c(11)
+outcome[, as_numeric_cols] <- as.numeric(outcome[, as_numeric_cols])
+hist(outcome[, 11], xlab=colnames(outcome)[11])
+```
+
+# Part 2: Finding the best hospital in a state
+
+```{r}
+expect_true(best("TX", "heart attack") == "CYPRESS FAIRBANKS MEDICAL CENTER")
+expect_true(best("TX", "heart failure") == "FORT DUNCAN MEDICAL CENTER")
+expect_true(best("MD", "heart attack") == "JOHNS HOPKINS HOSPITAL, THE")
+expect_true(best("MD", "pneumonia") == "GREATER BALTIMORE MEDICAL CENTER")
+expect_error(best("BB", "heart attack"))
+expect_error(best("NY", "hert attack"))
+```
+
+# Part 3: Ranking hospitals by outcome in a state
+
+```{r}
+expect_true(rankhospital("TX", "heart failure", 4) == "DETAR HOSPITAL NAVARRO")
+expect_true(rankhospital("MD", "heart attack", "worst") == "HARFORD MEMORIAL HOSPITAL")
+expect_true(is.na(rankhospital("MN", "heart attack", 5000)))
+```
+
+# Part 4: Ranking hospitals in all states
+
+```{r}
+head(rankall("heart attack", 20), 10)
+```
+
+```{r}
+tail(rankall("pneumonia", "worst"), 3)
+```
+
+```{r}
+tail(rankall("heart failure"), 10)
+```
+
+# Quiz
+
+## Q1:
+
+```{r}
+suppressWarnings(best("SC", "heart attack"))
+```
+
+## Q2:
+
+```{r}
+suppressWarnings(best("NY", "pneumonia"))
+```
+
+## Q3:
+
+```{r}
+suppressWarnings(best("AK", "pneumonia"))
+```
+
+## Q4:
+
+```{r}
+suppressWarnings(rankhospital("NC", "heart attack", "worst"))
+```
+
+## Q5:
+
+```{r}
+suppressWarnings(rankhospital("WA", "heart attack", 7))
+```
+
+## Q6:
+
+```{r}
+suppressWarnings(rankhospital("TX", "pneumonia", 10))
+```
+
+## Q7:
+
+```{r}
+suppressWarnings(rankhospital("NY", "heart attack", 7))
+```
+
+## Q8:
+
+```{r}
+suppressWarnings(r <- rankall("heart attack", 4))
+as.character(subset(r, state == "HI")$hospital)
+```
+
+## Q9:
+
+```{r}
+suppressWarnings(r <- rankall("pneumonia", "worst"))
+as.character(subset(r, state == "NJ")$hospital)
+```
+
+## Q10:
+
+```{r}
+suppressWarnings(r <- rankall("heart failure", 10))
+as.character(subset(r, state == "NV")$hospital)
+```
